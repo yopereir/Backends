@@ -1,0 +1,31 @@
+---
+# Source: etcd/templates/svc-headless.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: etcd-headless
+  namespace: "etcd"
+  labels:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: etcd
+    app.kubernetes.io/version: 3.5.15
+    helm.sh/chart: etcd-10.2.8
+    app.kubernetes.io/component: etcd
+  annotations:
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+spec:
+  type: ClusterIP
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+    - name: client
+      port: 2379
+      targetPort: client
+    - name: peer
+      port: 2380
+      targetPort: peer
+  selector:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/name: etcd
+    app.kubernetes.io/component: etcd
