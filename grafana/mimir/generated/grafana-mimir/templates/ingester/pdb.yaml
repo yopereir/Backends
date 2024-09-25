@@ -1,0 +1,23 @@
+---
+# Source: grafana-mimir/templates/ingester/pdb.yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: grafana-ingester
+  namespace: "grafana-mimir"
+  labels:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: grafana-mimir
+    app.kubernetes.io/version: 2.13.0
+    helm.sh/chart: grafana-mimir-1.2.10
+    app.kubernetes.io/part-of: grafana-mimir
+    app.kubernetes.io/component: ingester
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/name: grafana-mimir
+      app.kubernetes.io/part-of: grafana-mimir
+      app.kubernetes.io/component: ingester

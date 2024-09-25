@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jupyter-notebook
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jupyter-notebook
+  template:
+    metadata:
+      labels:
+        app: jupyter-notebook
+    spec:
+      containers:
+        - name: jupyter-notebook
+          image: quay.io/jupyter/scipy-notebook
+          ports:
+            - containerPort: 8888
+          volumeMounts:
+            - name: jupyter-notebooks-storage
+              mountPath: /home/jovyan/work
+            - name: jupyter-notebooks-config
+              mountPath: /etc/jupyter/jupyter_server_config.py
+      volumes:
+        - name: jupyter-notebooks-storage
+          hostPath:
+            path: $PWD/notebooks
+            type: Directory
+        - name: jupyter-notebooks-config
+          hostPath:
+            path: $PWD/configs/jupyter_server_config.py
+            type: File
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jupyter-notebook
+spec:
+  type: NodePort
+  ports:
+    - port: 8888
+      targetPort: 8888
+  selector:
+    app: jupyter-notebook
+---

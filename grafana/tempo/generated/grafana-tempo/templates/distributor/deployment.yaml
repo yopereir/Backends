@@ -1,0 +1,145 @@
+---
+# Source: grafana-tempo/templates/distributor/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana-distributor
+  namespace: "grafana-tempo"
+  labels:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: grafana-tempo
+    app.kubernetes.io/version: 2.5.0
+    helm.sh/chart: grafana-tempo-3.7.4
+    app.kubernetes.io/component: distributor
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate: {}
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/name: grafana-tempo
+      app.kubernetes.io/component: distributor
+  template:
+    metadata:
+      annotations:
+        checksum/config: 97d76e1e53cddc6580fcdf68284a4966930742212d4e0cea812a78c777c7ca4a
+      labels:
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: grafana-tempo
+        app.kubernetes.io/version: 2.5.0
+        helm.sh/chart: grafana-tempo-3.7.4
+        app.kubernetes.io/component: distributor
+        tempo-gossip-member: "true"
+    spec:
+      serviceAccountName: grafana
+      
+      automountServiceAccountToken: false
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/name: grafana-tempo
+                    app.kubernetes.io/component: distributor
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+        fsGroupChangePolicy: Always
+        supplementalGroups: []
+        sysctls: []
+      enableServiceLinks: true
+      initContainers:
+      containers:
+        - name: grafana-tempo-distributor
+          image: docker.io/bitnami/grafana-tempo:2.5.0-debian-12-r8
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsGroup: 1001
+            runAsNonRoot: true
+            runAsUser: 1001
+            seLinuxOptions: {}
+            seccompProfile:
+              type: RuntimeDefault
+          args:
+            - -target=distributor
+            - -config.file=/bitnami/grafana-tempo/conf/tempo.yaml
+            - -mem-ballast-size-mbs=1024
+          envFrom:
+          ports:
+            - containerPort: 3200
+              name: http
+            - containerPort: 7946
+              name: http-memberlist
+            - containerPort: 9095
+              name: grpc
+            - containerPort: 14268
+              name: jaeger-http
+              protocol: TCP
+            - containerPort: 14250
+              name: jaeger-grpc
+              protocol: TCP
+          resources:
+            limits:
+              cpu: 150m
+              ephemeral-storage: 2Gi
+              memory: 192Mi
+            requests:
+              cpu: 100m
+              ephemeral-storage: 50Mi
+              memory: 128Mi
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+            tcpSocket:
+              port: 3200
+          readinessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+            httpGet:
+              path: /ready
+              port: 3200
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /tmp
+            # NOTE: The upstream chart does not create a PVC for this, we assume that it is just for tmp data
+            - name: empty-dir
+              mountPath: /bitnami/grafana-tempo/data
+              subPath: app-data-dir
+            - name: tempo-config
+              mountPath: /bitnami/grafana-tempo/conf/tempo.yaml
+              subPath: tempo.yaml
+            - name: overrides-config
+              mountPath: /bitnami/grafana-tempo/conf/overrides.yaml
+              subPath: overrides.yaml
+      volumes:
+        - name: empty-dir
+          emptyDir: {}
+        - name: tempo-config
+          configMap:
+            name: grafana-tempo
+        - name: overrides-config
+          configMap:
+            name: grafana-overrides

@@ -1,0 +1,19 @@
+---
+# Source: grafana-loki/charts/memcachedchunks/templates/pdb.yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: release-name-memcachedchunks
+  namespace: grafana-loki
+  labels:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: memcachedchunks
+    app.kubernetes.io/version: 1.6.29
+    helm.sh/chart: memcachedchunks-7.4.10
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/name: memcachedchunks

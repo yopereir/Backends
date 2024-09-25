@@ -1,0 +1,19 @@
+---
+# Source: grafana-mimir/charts/memcachedmetadata/templates/pdb.yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: release-name-memcachedmetadata
+  namespace: grafana-mimir
+  labels:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: memcachedmetadata
+    app.kubernetes.io/version: 1.6.29
+    helm.sh/chart: memcachedmetadata-7.4.10
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/name: memcachedmetadata

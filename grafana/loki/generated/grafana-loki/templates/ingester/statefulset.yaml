@@ -1,0 +1,147 @@
+---
+# Source: grafana-loki/templates/ingester/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: grafana-ingester
+  namespace: "grafana-loki"
+  labels:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: grafana-loki
+    app.kubernetes.io/version: 3.1.0
+    helm.sh/chart: grafana-loki-4.6.9
+    app.kubernetes.io/part-of: grafana-loki
+    app.kubernetes.io/component: ingester
+spec:
+  replicas: 1
+  updateStrategy:
+    rollingUpdate: null
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/name: grafana-loki
+      app.kubernetes.io/part-of: grafana-loki
+      app.kubernetes.io/component: ingester
+  serviceName: grafana-ingester
+  podManagementPolicy: 
+  template:
+    metadata:
+      annotations:
+        checksum/config: ade07d577c5ddad21ab0ca708640846786cf7e27352029227b3ecdc9e45f3443
+      labels:
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: grafana-loki
+        app.kubernetes.io/version: 3.1.0
+        helm.sh/chart: grafana-loki-4.6.9
+        app.kubernetes.io/part-of: grafana-loki
+        app.kubernetes.io/component: ingester
+        loki-gossip-member: "true"
+    spec:
+      serviceAccountName: grafana
+      
+      automountServiceAccountToken: false
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/name: grafana-loki
+                    app.kubernetes.io/component: ingester
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+        fsGroupChangePolicy: Always
+        supplementalGroups: []
+        sysctls: []
+      enableServiceLinks: true
+      initContainers:
+      containers:
+        - name: grafana-loki-ingester
+          image: docker.io/bitnami/grafana-loki:3.1.0-debian-12-r4
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsGroup: 1001
+            runAsNonRoot: true
+            runAsUser: 1001
+            seLinuxOptions: {}
+            seccompProfile:
+              type: RuntimeDefault
+          args:
+            - -target=ingester
+            - -config.file=/bitnami/grafana-loki/conf/loki.yaml
+          envFrom:
+          ports:
+            - containerPort: 3100
+              name: http
+            - containerPort: 7946
+              name: http-memberlist
+            - containerPort: 9095
+              name: grpc
+          resources:
+            limits:
+              cpu: 375m
+              ephemeral-storage: 2Gi
+              memory: 384Mi
+            requests:
+              cpu: 250m
+              ephemeral-storage: 50Mi
+              memory: 256Mi
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+            tcpSocket:
+              port: http
+          readinessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+            httpGet:
+              path: /ready
+              port: http
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+            - name: loki-config
+              mountPath: /bitnami/grafana-loki/conf/loki.yaml
+              subPath: loki.yaml
+            - name: data
+              mountPath: /bitnami/grafana-loki
+      volumes:
+        - name: empty-dir
+          emptyDir: {}
+        - name: loki-config
+          configMap:
+            name: grafana
+  volumeClaimTemplates:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: data
+      spec:
+        accessModes:
+          - "ReadWriteOnce"
+        resources:
+          requests:
+            storage: "8Gi"

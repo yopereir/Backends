@@ -1,0 +1,23 @@
+---
+# Source: grafana-mimir/charts/memcachedindex/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-memcachedindex
+  namespace: grafana-mimir
+  labels:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: memcachedindex
+    app.kubernetes.io/version: 1.6.29
+    helm.sh/chart: memcachedindex-7.4.10
+spec:
+  type: ClusterIP
+  ports:
+    - name: memcache
+      port: 11211
+      targetPort: memcache
+      nodePort: null
+  selector:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/name: memcachedindex
