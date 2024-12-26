@@ -1,0 +1,20 @@
+---
+# Source: odoo/templates/pvc.yaml
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: odoo
+  namespace: "odoo"
+  labels:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: odoo
+    app.kubernetes.io/version: 17.0.20240905
+    helm.sh/chart: odoo-26.2.18
+  annotations:
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  resources:
+    requests:
+      storage: "10Gi"

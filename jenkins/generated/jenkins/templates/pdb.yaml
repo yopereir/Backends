@@ -1,0 +1,19 @@
+---
+# Source: jenkins/templates/pdb.yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: jenkins
+  namespace: "jenkins"
+  labels:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: jenkins
+    app.kubernetes.io/version: 2.462.3
+    helm.sh/chart: jenkins-13.4.23
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/name: jenkins

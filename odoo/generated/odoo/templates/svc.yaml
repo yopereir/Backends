@@ -1,0 +1,25 @@
+---
+# Source: odoo/templates/svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: odoo
+  namespace: "odoo"
+  labels:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: odoo
+    app.kubernetes.io/version: 17.0.20240905
+    helm.sh/chart: odoo-26.2.18
+spec:
+  type: LoadBalancer
+  externalTrafficPolicy: "Cluster"
+  sessionAffinity: None
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
+  selector:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/name: odoo

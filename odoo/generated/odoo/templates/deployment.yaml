@@ -1,0 +1,103 @@
+---
+# Source: odoo/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: odoo
+  namespace: "odoo"
+  labels:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: odoo
+    app.kubernetes.io/version: 17.0.20240905
+    helm.sh/chart: odoo-26.2.18
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/name: odoo
+  strategy:
+    rollingUpdate: null
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: odoo
+        app.kubernetes.io/version: 17.0.20240905
+        helm.sh/chart: odoo-26.2.18
+    spec:
+      
+      serviceAccountName: odoo
+      automountServiceAccountToken: false
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/name: odoo
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      containers:
+        - name: odoo
+          image: docker.io/bitnami/odoo:17.0.20240905-debian-12-r1
+          imagePullPolicy: "IfNotPresent"
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: ALLOW_EMPTY_PASSWORD
+              value: "no"
+            - name: ODOO_DATABASE_HOST
+              value: "release-name-postgresql"
+            - name: ODOO_DATABASE_PORT_NUMBER
+              value: "5432"
+            - name: ODOO_DATABASE_NAME
+              value: bitnami_odoo
+            - name: ODOO_DATABASE_FILTER
+              value: ".*"
+            - name: ODOO_DATABASE_USER
+              value: bn_odoo
+            - name: ODOO_DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-postgresql
+                  key: password
+            - name: ODOO_EMAIL
+              value: "user@example.com"
+            - name: ODOO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: odoo
+                  key: odoo-password
+            - name: ODOO_SKIP_BOOTSTRAP
+              value: "no"
+            - name: ODOO_LOAD_DEMO_DATA
+              value: "no"
+          envFrom:
+          ports:
+            - name: http
+              containerPort: 8069
+          resources:
+            limits:
+              cpu: "1.5"
+              ephemeral-storage: 2Gi
+              memory: 3072Mi
+            requests:
+              cpu: "1.0"
+              ephemeral-storage: 50Mi
+              memory: 2048Mi
+          volumeMounts:
+            - name: odoo-data
+              mountPath: /bitnami/odoo
+      volumes:
+        - name: odoo-data
+          persistentVolumeClaim:
+            claimName: odoo

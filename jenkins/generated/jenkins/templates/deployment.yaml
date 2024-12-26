@@ -1,0 +1,124 @@
+---
+# Source: jenkins/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jenkins
+  namespace: "jenkins"
+  labels:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: jenkins
+    app.kubernetes.io/version: 2.462.3
+    helm.sh/chart: jenkins-13.4.23
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/name: jenkins
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: jenkins
+        app.kubernetes.io/version: 2.462.3
+        helm.sh/chart: jenkins-13.4.23
+        app.kubernetes.io/component: jenkins-controller
+      annotations:
+        checksum/secrets: b0ed0fa9527018c97298790fc9620f678ecad4d165caa8c7cc57e326ad3a856f
+    spec:
+      serviceAccountName: jenkins
+      
+      automountServiceAccountToken: true
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/name: jenkins
+                    app.kubernetes.io/component: jenkins-controller
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      containers:
+        - name: jenkins
+          image: docker.io/bitnami/jenkins:2.462.3-debian-12-r0
+          imagePullPolicy: "IfNotPresent"
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: JENKINS_USERNAME
+              value: "user"
+            - name: JENKINS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: jenkins
+                  key: jenkins-password
+            - name: JENKINS_HOME
+              value: "/bitnami/jenkins/home"
+            - name: JENKINS_SKIP_BOOTSTRAP
+              value: "no"
+            - name: JENKINS_HOST
+              value: ""
+            - name: JENKINS_EXTERNAL_HTTP_PORT_NUMBER
+              value: "80"
+            - name: JENKINS_EXTERNAL_HTTPS_PORT_NUMBER
+              value: "443"
+            - name: JENKINS_PLUGINS_LATEST
+              value: "true"
+            - name: JENKINS_PLUGINS_LATEST_SPECIFIED
+              value: "false"
+            - name: JENKINS_SKIP_IMAGE_PLUGINS
+              value: "false"
+            - name: JENKINS_OVERRIDE_PLUGINS
+              value: "false"
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: https
+              containerPort: 8443
+              protocol: TCP
+          resources:
+            limits:
+              cpu: 750m
+              ephemeral-storage: 2Gi
+              memory: 1536Mi
+            requests:
+              cpu: 500m
+              ephemeral-storage: 50Mi
+              memory: 1024Mi
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+            - name: empty-dir
+              mountPath: /opt/bitnami/jenkins/plugins
+              subPath: app-plugins-dir
+            - name: empty-dir
+              mountPath: /opt/bitnami/jenkins/tmp
+              subPath: app-tmp-dir
+            - name: empty-dir
+              mountPath: /opt/bitnami/jenkins/logs
+              subPath: app-logs-dir
+            - name: jenkins-data
+              mountPath: /bitnami/jenkins
+      volumes:
+        - name: empty-dir
+          emptyDir: {}
+        - name: jenkins-data
+          persistentVolumeClaim:
+            claimName: jenkins

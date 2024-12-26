@@ -4,7 +4,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: grafana
-  namespace: "grafana-operator"
   labels:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm

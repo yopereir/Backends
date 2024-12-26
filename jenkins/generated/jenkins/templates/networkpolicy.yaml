@@ -1,0 +1,29 @@
+---
+# Source: jenkins/templates/networkpolicy.yaml
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: jenkins
+  namespace: "jenkins"
+  labels:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: jenkins
+    app.kubernetes.io/version: 2.462.3
+    helm.sh/chart: jenkins-13.4.23
+    app.kubernetes.io/component: jenkins-controller
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/name: jenkins
+      app.kubernetes.io/component: jenkins-controller
+  policyTypes:
+    - Ingress
+    - Egress
+  egress:
+    - {}
+  ingress:
+    - ports:
+        - port: 8080
+        - port: 8443

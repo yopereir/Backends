@@ -1,0 +1,21 @@
+---
+# Source: jenkins/templates/rolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: jenkins
+  namespace: "jenkins"
+  labels:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: jenkins
+    app.kubernetes.io/version: 2.462.3
+    helm.sh/chart: jenkins-13.4.23
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: jenkins
+subjects:
+  - kind: ServiceAccount
+    name: jenkins
+    namespace: "jenkins"

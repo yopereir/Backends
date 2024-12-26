@@ -1,0 +1,112 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openapi-swagger-client
+  labels:
+    app: openapi-swagger-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: openapi-swagger-client
+  template:
+    metadata:
+      labels:
+        app: openapi-swagger-client
+    spec:
+      containers:
+        - name: openapi-swagger-client
+          image: swaggerapi/swagger-editor
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SWAGGER_FILE
+              value: "/api.yaml"
+          volumeMounts:
+            - name: config-volume
+              mountPath: /api.yaml
+              subPath: api.yaml
+      volumes:
+        - name: config-volume
+          configMap:
+            name: api-definition
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openapi-swagger-server
+  labels:
+    app: openapi-swagger-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: openapi-swagger-server
+  template:
+    metadata:
+      labels:
+        app: openapi-swagger-server
+    spec:
+      containers:
+        - name: openapi-swagger-server
+          image: $SERVER_NAME
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: openapi-swagger-client
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 8080
+  selector:
+    app: openapi-swagger-client
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: openapi-swagger-server
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 8080
+  selector:
+    app: openapi-swagger-server
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  labels:
+    app: openapi-swagger
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  name: openapi-swagger-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: openapi-swagger-client.test
+    http:
+      paths:
+      - backend:
+          service:
+            name: openapi-swagger-client
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+  - host: openapi-swagger-server.test
+    http:
+      paths:
+      - backend:
+          service:
+            name: openapi-swagger-server
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+---

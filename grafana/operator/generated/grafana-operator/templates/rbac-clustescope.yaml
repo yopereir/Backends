@@ -285,7 +285,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name:  grafana
-    namespace: grafana-operator
+    namespace: grafana
 roleRef:
   kind: ClusterRole
   name: grafana-grafana-operator
