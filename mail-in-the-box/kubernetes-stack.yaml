@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mailinthebox-deployment
+  labels:
+    app: mailinthebox
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mailinthebox
+  template:
+    metadata:
+      labels:
+        app: mailinthebox
+    spec:
+      containers:
+      - name: mailinthebox
+        image: mailinthebox
+        imagePullPolicy: Never
+        command: ["/bin/sh", "-c", "--"]
+        args:
+          - |
+            tail -f /dev/null
+        volumeMounts:
+        - name: storage
+          mountPath: /usr/mailinthebox
+      volumes:
+      - name: storage
+        hostPath:
+          path: "$PWD/storage"
+          type: Directory
