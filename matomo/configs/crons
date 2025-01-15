@@ -1,0 +1,2 @@
+MAILTO="noreply@matomo.org"
+10 * * * * root /opt/bitnami/php/bin/php /bitnami/matomo/console core:archive --url=http://matomo.org/

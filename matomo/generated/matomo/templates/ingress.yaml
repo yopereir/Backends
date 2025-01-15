@@ -1,0 +1,21 @@
+---
+# Source: matomo/templates/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: matomo
+  labels:
+    app.kubernetes.io/name: matomo
+spec:
+  ingressClassName: "nginx"
+  rules:
+    - host: matomo.test
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: matomo
+                port:
+                  name: http
