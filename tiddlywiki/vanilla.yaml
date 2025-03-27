@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tiddly-host
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tiddly-host
+  template:
+    metadata:
+      labels:
+        app: tiddly-host
+    spec:
+      containers:
+      - name: tiddly-host
+        image: nginx:latest
+        volumeMounts:
+        - name: tiddly-volume
+          mountPath: /usr/share/nginx/html/yopereir.html
+      volumes:
+      - name: tiddly-volume
+        hostPath:
+          path: $PWD/yopereir.html
+          type: File
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tiddlywiki
+spec:
+  selector:
+    app: tiddly-host
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+  type: ClusterIP
