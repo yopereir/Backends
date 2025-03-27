@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    env: dev
+    type: webserver
+    app: matomo
+  name: matomo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      env: dev
+      type: webserver
+      app: matomo
+  template:
+    metadata:
+      labels:
+        env: dev
+        type: webserver
+        app: matomo
+    spec:
+      initContainers:
+      - image: "$DYNAMIC_IMAGE_NAME"
+        imagePullPolicy: IfNotPresent
+        name: matomo-init
+        command: ['/bin/bash', '-c', 'cp -rf /var/www/html/ /bitnami/matomo/']
+        volumeMounts:
+          - name: matomo-data
+            mountPath: /bitnami/matomo
+      containers:
+      - image: "$DYNAMIC_IMAGE_NAME"
+        imagePullPolicy: IfNotPresent
+        name: matomo
+        resources:
+          limits:
+            memory: 250Mi
+          requests:
+            cpu: 1m
+            memory: 19Mi
+        envFrom:
+        - secretRef:
+            name: matomo-secrets
+        env:
+          - name: DOMAIN_NAME
+            value: "matomo.test"
+        volumeMounts:
+          - name: matomo-data
+            mountPath: /var/www/html/
+      volumes:
+        - name: matomo-data
+          persistentVolumeClaim:
+            claimName: matomo-pvc
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    env: dev
+    type: webserver
+    app: matomo
+  name: matomo-service
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    env: dev
+    type: webserver
+    app: matomo
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  labels:
+    env: dev
+    app: matomo
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/proxy_cache_path: /data/nginx/cache
+  name: matomo-ingress-dev
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: matomo.test
+    http:
+      paths:
+      - backend:
+          service:
+            name: matomo-service
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: matomo-pvc
+  labels:
+    env: dev
+    type: pvc
+    app: matomo
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  resources:
+    requests:
+      storage: "8Gi"

@@ -1,0 +1,2 @@
+MAILTO="noreply@matomo.org"
+10 * * * * root php ./console core:archive --url=http://$DOMAIN_NAME/
