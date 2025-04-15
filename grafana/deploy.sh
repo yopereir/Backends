@@ -1,21 +1,9 @@
-export NAMESPACE="grafana"
+export NAMESPACE="lgtm"
 export All_STACKS=true
-if [[ $All_STACKS = false ]];then
-echo "Deploying only main grafana stack"
+echo "Deploying LGTM stack on same namespace: $NAMESPACE"
 kubectl delete namespace $NAMESPACE || echo 0
 kubectl create namespace $NAMESPACE
-kubectl apply -R -f ./generated/ --namespace $NAMESPACE
-else
-echo "Deploying all stacks"
-kubectl delete namespace $NAMESPACE $NAMESPACE-loki $NAMESPACE-mimir $NAMESPACE-operator $NAMESPACE-tempo || echo 0
-kubectl create namespace $NAMESPACE
-kubectl create namespace $NAMESPACE-loki
-kubectl create namespace $NAMESPACE-mimir
-kubectl create namespace $NAMESPACE-operator
-kubectl create namespace $NAMESPACE-tempo
-kubectl apply -R -f ./generated/ --namespace $NAMESPACE
-kubectl apply -R -f ./loki/generated/ --namespace $NAMESPACE-loki
-kubectl apply -R -f ./mimir/generated/ --namespace $NAMESPACE-mimir
-kubectl apply -R -f ./operator/generated/ --namespace $NAMESPACE-operator
-kubectl apply -R -f ./tempo/generated/ --namespace $NAMESPACE-tempo
-fi
+# UNCOMMENT TO REINSTALL HELM CHART
+# rm -rf lgtm
+# helm template --output-dir ./lgtm/generated grafana/lgtm-distributed --set auth.rbac.create=false,readinessProbe.enabled=false,livenessProbe.enabled=false,startupProbe.enabled=false,podSecurityContext.enabled=false,containerSecurityContext.enabled=false,fullnameOverride=lgtm --namespace $NAMESPACE
+kubectl apply -R -f ./lgtm/generated/ --namespace $NAMESPACE
