@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: nginx
+  name: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - image: "$DYNAMIC_IMAGE_NAME"
+        imagePullPolicy: IfNotPresent
+        name: nginx
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: nginx
+  name: nginx-service
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: nginx
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  labels:
+    app: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/proxy_cache_path: /data/nginx/cache
+  name: nginx-ingress-dev
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: nginx.test
+    http:
+      paths:
+      - backend:
+          service:
+            name: nginx-service
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+---
