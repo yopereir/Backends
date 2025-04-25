@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    env: loc
+    app: grafana
+  name: grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      env: loc
+      app: grafana
+  template:
+    metadata:
+      labels:
+        env: loc
+        app: grafana
+    spec:
+      containers:
+      - image: "$DYNAMIC_IMAGE_NAME"
+        imagePullPolicy: IfNotPresent
+        name: grafana
+        resources:
+          limits:
+            cpu: 200m
+            memory: 4G
+          requests:
+            cpu: 1m
+            memory: 19Mi
+        envFrom:
+        - secretRef:
+            name: grafana-secrets
+        env:
+          - name: DOMAIN_NAME
+            value: "grafana.org.test"
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    env: loc
+    app: grafana
+  name: grafana-service
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 3000
+  selector:
+    env: loc
+    app: grafana
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  labels:
+    env: loc
+    app: grafana
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/proxy_cache_path: /data/nginx/cache
+  name: grafana-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: grafana.org.test
+    http:
+      paths:
+      - backend:
+          service:
+            name: grafana-service
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+---

@@ -1,0 +1,26 @@
+---
+# Source: lgtm-distributed/charts/tempo/templates/memcached/service-memcached.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-tempo-memcached
+  namespace: lgtm
+  labels:
+    helm.sh/chart: tempo-1.13.2
+    app.kubernetes.io/name: tempo
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: memcached
+    app.kubernetes.io/version: "2.5.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  ports:
+  - name: memcached-client
+    port: 11211
+    targetPort: 11211
+  - name: http-metrics
+    port: 9150
+    targetPort: http-metrics
+  selector:
+    app.kubernetes.io/name: tempo
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: memcached

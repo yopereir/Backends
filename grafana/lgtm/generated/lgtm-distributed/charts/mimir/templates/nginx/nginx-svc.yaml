@@ -1,0 +1,27 @@
+---
+# Source: lgtm-distributed/charts/mimir/templates/nginx/nginx-svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-mimir-nginx
+  labels:
+    helm.sh/chart: mimir-5.3.0
+    app.kubernetes.io/name: mimir
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: nginx
+    app.kubernetes.io/version: "2.12.0"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    {}
+  namespace: "lgtm"
+spec:
+  type: ClusterIP
+  ports:
+    - name: http-metric
+      port: 80
+      targetPort: http-metric
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: mimir
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: nginx

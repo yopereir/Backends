@@ -1,0 +1,27 @@
+---
+# Source: lgtm-distributed/charts/tempo/templates/gossip-ring/service-gossip-ring.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-tempo-gossip-ring
+  namespace: lgtm
+  labels:
+    helm.sh/chart: tempo-1.13.2
+    app.kubernetes.io/name: tempo
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: gossip-ring
+    app.kubernetes.io/version: "2.5.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - name: gossip-ring
+      port: 7946
+      protocol: TCP
+      targetPort: http-memberlist
+  publishNotReadyAddresses: true
+  selector:
+    app.kubernetes.io/name: tempo
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/part-of: memberlist

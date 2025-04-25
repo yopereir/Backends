@@ -1,0 +1,131 @@
+---
+# Source: lgtm-distributed/charts/mimir/templates/ingester/ingester-statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: release-name-mimir-ingester
+  labels:
+    helm.sh/chart: mimir-5.3.0
+    app.kubernetes.io/name: mimir
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: ingester
+    app.kubernetes.io/part-of: memberlist
+    app.kubernetes.io/version: "2.12.0"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    {}
+  namespace: "lgtm"
+spec:
+  podManagementPolicy: Parallel
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: mimir
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/component: ingester
+  updateStrategy:
+    type: RollingUpdate
+  serviceName: release-name-mimir-ingester-headless
+  volumeClaimTemplates:
+    - metadata:
+        name: storage
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: "2Gi"
+  template:
+    metadata:
+      labels:
+        helm.sh/chart: mimir-5.3.0
+        app.kubernetes.io/name: mimir
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/version: "2.12.0"
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: ingester
+        app.kubernetes.io/part-of: memberlist
+      annotations:
+        checksum/config: 1d657982a8dd131e6585256e67e20666b9cc9b38a39b9d241123b3313c817e96
+      namespace: "lgtm"
+    spec:
+      serviceAccountName: release-name-mimir
+      securityContext:
+        fsGroup: 10001
+        runAsGroup: 10001
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: ScheduleAnyway
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: mimir
+            app.kubernetes.io/instance: release-name
+            app.kubernetes.io/component: ingester
+      terminationGracePeriodSeconds: 240
+      volumes:
+        - name: config
+          configMap:
+            name: release-name-mimir-config
+            items:
+              - key: "mimir.yaml"
+                path: "mimir.yaml"
+        - name: runtime-config
+          configMap:
+            name: release-name-mimir-runtime
+        - name: active-queries
+          emptyDir: {}
+      containers:
+        - name: ingester
+          image: "grafana/mimir:2.12.0"
+          imagePullPolicy: IfNotPresent
+          args:
+            - "-target=ingester"
+            - "-config.expand-env=true"
+            - "-config.file=/etc/mimir/mimir.yaml"
+            - "-ingester.ring.instance-availability-zone=zone-default"
+            - "-server.grpc-max-concurrent-streams=500"
+          volumeMounts:
+            - name: config
+              mountPath: /etc/mimir
+            - name: runtime-config
+              mountPath: /var/mimir
+            - name: storage
+              mountPath: "/data"
+            - name: active-queries
+              mountPath: /active-query-tracker
+          ports:
+            - name: http-metrics
+              containerPort: 8080
+              protocol: TCP
+            - name: grpc
+              containerPort: 9095
+              protocol: TCP
+            - name: memberlist
+              containerPort: 7946
+              protocol: TCP
+          livenessProbe:
+            null
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http-metrics
+            initialDelaySeconds: 60
+          resources:
+            requests:
+              cpu: 20m
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+          env:
+            - name: "JAEGER_REPORTER_MAX_QUEUE_SIZE"
+              value: "1000"
+          envFrom:

@@ -1,0 +1,31 @@
+---
+# Source: lgtm-distributed/charts/tempo/templates/ingester/service-ingester-discovery.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-tempo-ingester-discovery
+  namespace: lgtm
+  labels:
+    helm.sh/chart: tempo-1.13.2
+    app.kubernetes.io/name: tempo
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: ingester
+    app.kubernetes.io/version: "2.5.0"
+    app.kubernetes.io/managed-by: Helm
+    prometheus.io/service-monitor: "false"
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - name: http-metrics
+      port: 3100
+      protocol: TCP
+      targetPort: 3100
+    - name: grpc
+      port: 9095
+      protocol: TCP
+      targetPort: 9095
+  selector:
+    app.kubernetes.io/name: tempo
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: ingester

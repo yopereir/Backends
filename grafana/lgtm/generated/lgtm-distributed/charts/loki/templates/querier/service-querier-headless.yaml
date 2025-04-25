@@ -1,0 +1,28 @@
+---
+# Source: lgtm-distributed/charts/loki/templates/querier/service-querier-headless.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-loki-querier-headless
+  namespace: lgtm
+  labels:
+    app.kubernetes.io/name: loki
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: querier
+    prometheus.io/service-monitor: "false"
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - name: http
+      port: 3100
+      targetPort: http
+      protocol: TCP
+    - name: grpc
+      port: 9095
+      targetPort: grpc
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: loki
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: querier
