@@ -1,0 +1,12 @@
+# values.yaml
+installCRDs: true
+
+ingressController:
+  enabled: true
+env:
+  admin_gui_url: https://localhost:8444
+manager:
+  enabled: true
+  ingress:
+    enabled: true
+    hostname: localhost

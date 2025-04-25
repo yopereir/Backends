@@ -1,0 +1,26 @@
+---
+# Source: airflow/templates/webserver/webserver-service.yaml
+################################
+## Airflow Webserver Service
+#################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: airflow-webserver
+  labels:
+    tier: airflow
+    component: webserver
+    release: airflow
+    chart: "airflow-1.16.0"
+    heritage: Helm
+spec:
+  type: ClusterIP
+  selector:
+    tier: airflow
+    component: webserver
+    release: airflow
+  ports:
+  
+    -
+      name: airflow-ui
+      port: 8080

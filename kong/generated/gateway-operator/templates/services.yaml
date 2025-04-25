@@ -1,0 +1,17 @@
+---
+# Source: gateway-operator/templates/services.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: kgo
+  name: kong
+  namespace:  kong
+spec:
+  ports:
+  - name: https
+    port: 8443
+    protocol: TCP
+    targetPort: https
+  selector:
+    app.kubernetes.io/component: kgo
