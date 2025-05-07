@@ -9,8 +9,8 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: mongodb
-    app.kubernetes.io/version: 7.0.14
-    helm.sh/chart: mongodb-15.6.24
+    app.kubernetes.io/version: 8.0.6
+    helm.sh/chart: mongodb-16.5.0
     app.kubernetes.io/component: mongodb
 spec:
   replicas: 1
@@ -27,8 +27,8 @@ spec:
         app.kubernetes.io/instance: release-name
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: mongodb
-        app.kubernetes.io/version: 7.0.14
-        helm.sh/chart: mongodb-15.6.24
+        app.kubernetes.io/version: 8.0.6
+        helm.sh/chart: mongodb-16.5.0
         app.kubernetes.io/component: mongodb
     spec:
       
@@ -54,7 +54,7 @@ spec:
       initContainers:
         
         - name: log-dir
-          image: docker.io/bitnami/mongodb:7.0.14-debian-12-r3
+          image: docker.io/bitnami/mongodb:8.0.6-debian-12-r1
           imagePullPolicy: "IfNotPresent"
           command:
             - /bin/bash
@@ -77,18 +77,15 @@ spec:
               subPath: app-logs-dir
       containers:
         - name: mongodb
-          image: docker.io/bitnami/mongodb:7.0.14-debian-12-r3
+          image: docker.io/bitnami/mongodb:8.0.6-debian-12-r1
           imagePullPolicy: "IfNotPresent"
           env:
             - name: BITNAMI_DEBUG
               value: "false"
             - name: MONGODB_ROOT_USER
               value: "root"
-            - name: MONGODB_ROOT_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: mongodb
-                  key: mongodb-root-password
+            - name: MONGODB_ROOT_PASSWORD_FILE
+              value: "/opt/bitnami/mongodb/secrets/mongodb-root-password"
             - name: ALLOW_EMPTY_PASSWORD
               value: "no"
             - name: MONGODB_SYSTEM_LOG_VERBOSITY
@@ -108,24 +105,6 @@ spec:
           ports:
             - name: mongodb
               containerPort: 27017
-          livenessProbe:
-            failureThreshold: 6
-            initialDelaySeconds: 30
-            periodSeconds: 20
-            successThreshold: 1
-            timeoutSeconds: 10
-            exec:
-              command:
-                - /bitnami/scripts/ping-mongodb.sh
-          readinessProbe:
-            failureThreshold: 6
-            initialDelaySeconds: 5
-            periodSeconds: 10
-            successThreshold: 1
-            timeoutSeconds: 5
-            exec:
-              command:
-                - /bitnami/scripts/readiness-probe.sh
           resources:
             limits:
               cpu: 750m
@@ -156,13 +135,17 @@ spec:
               subPath: 
             - name: common-scripts
               mountPath: /bitnami/scripts
+            - name: mongodb-secrets
+              mountPath: /opt/bitnami/mongodb/secrets
       volumes:
         - name: empty-dir
           emptyDir: {}
         - name: common-scripts
           configMap:
             name: mongodb-common-scripts
-            defaultMode: 0550
+            defaultMode: 0o550
+        - name: mongodb-secrets
+          secret:
+            secretName: mongodb
         - name: datadir
-          persistentVolumeClaim:
-            claimName: mongodb
+          emptyDir: {}
