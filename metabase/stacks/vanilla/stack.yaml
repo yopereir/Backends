@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  generation: 1
+  labels:
+    env: loc
+    app: metabase
+  name: metabase
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      env: loc
+      app: metabase
+  template:
+    metadata:
+      labels:
+        env: loc
+        app: metabase
+    spec:
+      containers:
+      - image: "$DYNAMIC_IMAGE_NAME"
+        imagePullPolicy: IfNotPresent
+        name: metabase
+        ports:
+        - name: metabase-port
+          containerPort: 3000
+        resources:
+          limits:
+            cpu: 200m
+            memory: 2G
+          requests:
+            cpu: 1m
+            memory: 1G
+        envFrom:
+          - secretRef:
+              name: metabase-secret-env
+        startupProbe:
+          httpGet:
+            path: /api/health
+            port: metabase-port
+          failureThreshold: 30
+          periodSeconds: 10
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    env: loc
+    app: metabase
+  name: metabase-service
+spec:
+  ports:
+  - port: 80
+    name: metabase-port
+    protocol: TCP
+    targetPort: metabase-port
+  selector:
+    env: loc
+    app: metabase
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  labels:
+    env: loc
+    app: metabase
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  name: metabase-ingress-loc
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: metabase.test
+    http:
+      paths:
+      - backend:
+          service:
+            name: metabase-service
+            port:
+              name: metabase-port
+        path: /
+        pathType: Prefix
+---
