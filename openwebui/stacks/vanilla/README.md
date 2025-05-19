@@ -1,0 +1,1 @@
+Files taken from here: https://github.com/open-webui/open-webui/tree/main/kubernetes/manifest/base

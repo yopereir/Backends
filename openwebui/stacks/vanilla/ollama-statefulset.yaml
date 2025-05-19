@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ollama
+spec:
+  serviceName: "ollama-service"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ollama
+  template:
+    metadata:
+      labels:
+        app: ollama
+    spec:
+      containers:
+      - name: ollama
+        image: "$DYNAMIC_IMAGE_NAME_OLLAMA" # DEFAULT ollama/ollama:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 11434
+        resources:
+          requests:
+            cpu: "2000m"
+            memory: "2Gi"
+          limits:
+            cpu: "4000m"
+            memory: "4Gi"
+            nvidia.com/gpu: "0"
+  #      UNCOMMENT THIS IF YOU WANT TO USE DEFAULT IMAGE
+  #       volumeMounts:
+  #       - name: ollama-volume
+  #         mountPath: /root/.ollama
+  #       tty: true
+  # volumeClaimTemplates:
+  # - metadata:
+  #     name: ollama-volume
+  #   spec:
+  #     accessModes: [ "ReadWriteOnce" ]
+  #     resources:
+  #       requests:
+  #         storage: 30Gi

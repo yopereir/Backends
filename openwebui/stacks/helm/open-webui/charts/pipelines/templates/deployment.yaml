@@ -1,0 +1,47 @@
+---
+# Source: open-webui/charts/pipelines/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: open-webui-pipelines
+  namespace: openwebui
+  labels:
+    helm.sh/chart: pipelines-0.6.0
+    app.kubernetes.io/version: "alpha"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: open-webui-pipelines
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/component: open-webui-pipelines
+  template:
+    metadata:
+      labels:
+        helm.sh/chart: pipelines-0.6.0
+        app.kubernetes.io/version: "alpha"
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/component: open-webui-pipelines
+    spec:
+      enableServiceLinks: false
+      automountServiceAccountToken: false
+      serviceAccountName: open-webui-pipelines
+      containers:
+      - name: pipelines
+        image: ghcr.io/open-webui/pipelines:main
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 9099
+        volumeMounts:
+        - name: data
+          mountPath: /app/pipelines
+        env:
+        tty: true
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: open-webui-pipelines

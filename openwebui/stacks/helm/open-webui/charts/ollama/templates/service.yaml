@@ -1,0 +1,23 @@
+---
+# Source: open-webui/charts/ollama/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: open-webui-ollama
+  namespace: openwebui
+  labels:
+    helm.sh/chart: ollama-1.16.0
+    app.kubernetes.io/version: "0.6.8"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: open-webui-ollama
+spec:
+  type: ClusterIP
+  ports:
+    - port: 11434
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: open-webui-ollama

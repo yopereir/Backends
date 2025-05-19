@@ -1,0 +1,63 @@
+---
+# Source: open-webui/templates/workload-manager.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: open-webui
+  namespace: openwebui
+  labels:
+    helm.sh/chart: open-webui-6.15.0
+    app.kubernetes.io/version: "0.6.9"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: open-webui
+spec:
+  replicas: 1
+  serviceName: open-webui
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/component: open-webui
+  template:
+    metadata:
+      labels:
+        helm.sh/chart: open-webui-6.15.0
+        app.kubernetes.io/version: "0.6.9"
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/component: open-webui
+    spec:
+      initContainers:
+      - name: copy-app-data
+        image: ghcr.io/open-webui/open-webui:0.6.9
+        imagePullPolicy: IfNotPresent
+        command: ['sh', '-c', 'cp -R -n /app/backend/data/* /tmp/app-data/']
+        volumeMounts:
+        - name: data
+          mountPath: /tmp/app-data
+      enableServiceLinks: false
+      automountServiceAccountToken: false
+      serviceAccountName: open-webui
+      containers:
+      - name: open-webui
+        image: ghcr.io/open-webui/open-webui:0.6.9
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 8080
+        volumeMounts:
+        - name: data
+          mountPath: /app/backend/data
+        env:
+        - name: "OLLAMA_BASE_URLS"
+          value: "http://open-webui-ollama.openwebui.svc.cluster.local:11434"
+        # If Pipelines is enabled and OpenAI API value is set, use OPENAI_API_BASE_URLS with combined values
+        - name: "OPENAI_API_BASE_URLS"
+          value: "http://open-webui-pipelines.openwebui.svc.cluster.local:9099;https://api.openai.com/v1"
+        - name: OPENAI_API_KEY
+          value: 0p3n-w3bu!
+        tty: true
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: open-webui

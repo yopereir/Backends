@@ -1,0 +1,16 @@
+---
+# Source: open-webui/charts/pipelines/templates/pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: open-webui-pipelines
+  namespace: openwebui
+  labels:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: open-webui-pipelines
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  resources:
+    requests:
+      storage: 2Gi

@@ -1,0 +1,22 @@
+---
+# Source: open-webui/charts/ollama/templates/tests/test-connection.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "open-webui-ollama-test-connection"
+  namespace: openwebui
+  labels:
+    helm.sh/chart: ollama-1.16.0
+    app.kubernetes.io/version: "0.6.8"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: open-webui-ollama
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['open-webui-ollama:11434']
+  restartPolicy: Never
