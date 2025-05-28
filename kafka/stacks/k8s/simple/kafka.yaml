@@ -25,11 +25,11 @@ spec:
       containers:
         - name: kafka
           image: apache/kafka:3.7.0
+          workingDir: /opt/kafka/bin
           command:
             - sh
             - -c
             - |
-              export PATH=$PATH:/opt/kafka/bin && \
               /opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/server.properties \
               --override broker.id=1 \
               --override zookeeper.connect=zookeeper:2181 \
