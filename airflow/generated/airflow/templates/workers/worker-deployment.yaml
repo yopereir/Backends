@@ -33,7 +33,7 @@ spec:
         checksum/pgbouncer-config-secret: 1dae2adc757473469686d37449d076b0c82404f61413b58ae68b3c5e99527688
         checksum/webserver-secret-key: b8d8627a68ade7f1b9b9af7ed426ba41851a00ab83fddb1a4065a277fa5b68b0
         checksum/kerberos-keytab: 80979996aa3c1f48c95dfbe9bb27191e71f12442a08c0ed834413da9d430fd0e
-        checksum/airflow-config: 1c6b0e89d39a46796a66d4e6017d3b181775819ca3251e6eb0d6b91e9d96f056
+        checksum/airflow-config: dc434580652e4dbc1e21a2005cad888b1362a87ad49c0d4f91b91fc965877688
         checksum/extra-configmaps: e862ea47e13e634cf17d476323784fa27dac20015550c230953b526182f5cac8
         checksum/extra-secrets: e9582fdd622296c976cbc10a5ba7d6702c28a24fe80795ea5b84ba443a56c827
         cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
@@ -63,8 +63,8 @@ spec:
         - name: wait-for-airflow-migrations
           resources:
             {}
-          image: apache/airflow:2.10.5
-          imagePullPolicy: IfNotPresent
+          image: custom-airflow:test
+          imagePullPolicy: Never
           securityContext: 
             allowPrivilegeEscalation: false
             capabilities:
@@ -126,8 +126,8 @@ spec:
                   key: connection
       containers:
         - name: worker
-          image: apache/airflow:2.10.5
-          imagePullPolicy: IfNotPresent
+          image: custom-airflow:test
+          imagePullPolicy: Never
           securityContext: 
             allowPrivilegeEscalation: false
             capabilities:
@@ -209,8 +209,8 @@ spec:
                   name: airflow-broker-url
                   key: connection          
         - name: worker-log-groomer
-          image: apache/airflow:2.10.5
-          imagePullPolicy: IfNotPresent
+          image: custom-airflow:test
+          imagePullPolicy: Never
           securityContext: 
             allowPrivilegeEscalation: false
             capabilities:

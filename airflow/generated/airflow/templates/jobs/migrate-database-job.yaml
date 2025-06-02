@@ -41,8 +41,8 @@ spec:
       serviceAccountName: "airflow-migrate-database-job"
       containers:
         - name: run-airflow-migrations
-          image: apache/airflow:2.10.5
-          imagePullPolicy: IfNotPresent
+          image: custom-airflow:test
+          imagePullPolicy: Never
           securityContext: 
             allowPrivilegeEscalation: false
             capabilities:

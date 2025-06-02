@@ -52,15 +52,15 @@ data:
     multi_namespace_mode = False
     namespace = airflow
     pod_template_file = /opt/airflow/pod_templates/pod_template_file.yaml
-    worker_container_repository = apache/airflow
-    worker_container_tag = 2.10.5
+    worker_container_repository = custom-airflow
+    worker_container_tag = test
     
     [kubernetes_executor]
     multi_namespace_mode = False
     namespace = airflow
     pod_template_file = /opt/airflow/pod_templates/pod_template_file.yaml
-    worker_container_repository = apache/airflow
-    worker_container_tag = 2.10.5
+    worker_container_repository = custom-airflow
+    worker_container_tag = test
     
     [logging]
     colored_console_log = False
