@@ -1,0 +1,1 @@
+Original source: https://github.com/meilisearch/meilisearch-kubernetes/blob/main/manifests/meilisearch.yaml
