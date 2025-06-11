@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  generation: 1
+  labels:
+    app: opensearch
+  name: opensearch
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: opensearch
+  template:
+    metadata:
+      labels:
+        app: opensearch
+    spec:
+      containers:
+      - image: "$DYNAMIC_IMAGE_NAME"
+        imagePullPolicy: Never
+        name: opensearch
+        ports:
+        - name: os-http
+          containerPort: 9200
+        - name: os-transport
+          containerPort: 9300
+        - name: os-analyzer
+          containerPort: 9600
+        envFrom:
+          - secretRef:
+              name: opensearch-secret-env
+        readinessProbe:
+          failureThreshold: 3
+          periodSeconds: 5
+          tcpSocket:
+            port: 9200
+          timeoutSeconds: 3
+        startupProbe:
+          failureThreshold: 30
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          tcpSocket:
+            port: 9200
+          timeoutSeconds: 3
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: opensearch
+  name: opensearch-service
+spec:
+  ports:
+  - port: 80
+    name: os-http
+    protocol: TCP
+    targetPort: os-http
+  - port: 81
+    name: os-analyzer
+    protocol: TCP
+    targetPort: os-analyzer
+  selector:
+    app: opensearch
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  labels:
+    app: opensearch
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  name: opensearch-ingress-loc
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: opensearch.test
+    http:
+      paths:
+      - backend:
+          service:
+            name: opensearch-service
+            port:
+              name: os-http
+        path: /
+        pathType: Prefix
+  - host: analyzer.opensearch.test
+    http:
+      paths:
+      - backend:
+          service:
+            name: opensearch-service
+            port:
+              name: os-analyzer
+        path: /
+        pathType: Prefix
+---

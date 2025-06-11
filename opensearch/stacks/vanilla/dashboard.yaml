@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  generation: 1
+  labels:
+    app: opensearch
+  name: opensearch-dashboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: opensearch
+  template:
+    metadata:
+      labels:
+        app: opensearch
+    spec:
+      containers:
+      - image: opensearchproject/opensearch-dashboards:latest
+        imagePullPolicy: IfNotPresent
+        name: opensearch-dashboard
+        ports:
+        - name: os-dashboard
+          containerPort: 5601
+        envFrom:
+          - secretRef:
+              name: opensearch-dashboard-secret-env
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: opensearch
+  name: opensearch-dashboard-service
+spec:
+  ports:
+  - port: 80
+    name: os-dashboard
+    protocol: TCP
+    targetPort: os-dashboard
+  selector:
+    app: opensearch
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  labels:
+    app: opensearch
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  name: opensearch-dashboard-ingress-loc
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: opensearch.dashboard.test
+    http:
+      paths:
+      - backend:
+          service:
+            name: opensearch-dashboard-service
+            port:
+              name: os-dashboard
+        path: /
+        pathType: Prefix
+---
