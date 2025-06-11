@@ -1,0 +1,57 @@
+---
+# Source: fluent-bit/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluent-bit
+  namespace: fluent-bit
+  labels:
+    helm.sh/chart: fluent-bit-0.49.0
+    app.kubernetes.io/name: fluent-bit
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "4.0.1"
+    app.kubernetes.io/managed-by: Helm
+data:
+  custom_parsers.conf: |
+    [PARSER]
+        Name docker_no_time
+        Format json
+        Time_Keep Off
+        Time_Key time
+        Time_Format %Y-%m-%dT%H:%M:%S.%L
+    
+  fluent-bit.conf: |
+    [SERVICE]
+        Flush        1
+        Log_Level    info
+        Daemon Off
+        Parsers_File parsers.conf
+        HTTP_Server  On
+        HTTP_Listen  0.0.0.0
+        HTTP_Port    2020
+    
+    [INPUT]
+        Name              tail
+        Path              /var/log/containers/*.log
+        Parser            docker
+        Tag               kube.*
+        Refresh_Interval  5
+    
+    [FILTER]
+        Name                kubernetes
+        Match               kube.*
+        Merge_Log           On
+        Merge_Log_Key       log
+        Keep_Log            Off
+    
+    [OUTPUT]
+        Name            opensearch
+        Match           *
+        Host            opensearch-service.opensearch.svc.cluster.local
+        Port            80
+        Index           kube-logs
+        Generate_ID     On
+        Suppress_Type_Name On
+        Time_Key        @timestamp
+        Replace_Dots    On
+        Retry_Limit     False

@@ -4,12 +4,12 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: fluent-bit
-  namespace: monitoring
+  namespace: fluent-bit
   labels:
-    helm.sh/chart: fluent-bit-0.47.5
+    helm.sh/chart: fluent-bit-0.49.0
     app.kubernetes.io/name: fluent-bit
     app.kubernetes.io/instance: release-name
-    app.kubernetes.io/version: "3.1.4"
+    app.kubernetes.io/version: "4.0.1"
     app.kubernetes.io/managed-by: Helm
 spec:
   selector:
@@ -22,14 +22,14 @@ spec:
         app.kubernetes.io/name: fluent-bit
         app.kubernetes.io/instance: release-name
       annotations:
-        checksum/config: 4e7a51c7736a3ded60090301d1b4e54707878ce529d504275458d804cc558931
+        checksum/config: ab921ea331d7d4224ffd911bb96e331b9c82d37e7bbe7e6cbae46bf7070a8d29
     spec:
       serviceAccountName: fluent-bit
       hostNetwork: false
       dnsPolicy: ClusterFirst
       containers:
         - name: fluent-bit
-          image: "cr.fluentbit.io/fluent/fluent-bit:3.1.4"
+          image: "cr.fluentbit.io/fluent/fluent-bit:4.0.1"
           imagePullPolicy: IfNotPresent
           command:
             - /fluent-bit/bin/fluent-bit
