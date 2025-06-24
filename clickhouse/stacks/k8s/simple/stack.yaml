@@ -1,0 +1,134 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  generation: 1
+  labels:
+    app: clickhouse
+    env: loc
+    type: webserver
+  name: clickhouse
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: clickhouse
+      env: loc
+      type: webserver
+  template:
+    metadata:
+      labels:
+        app: clickhouse
+        env: loc
+        type: webserver
+    spec:
+      containers:
+      - image: "$DYNAMIC_IMAGE_NAME"
+        imagePullPolicy: IfNotPresent
+        name: clickhouse-server
+        resources:
+          limits:
+            cpu: 200m
+            memory: 2G
+          requests:
+            cpu: 1m
+            memory: 1G
+        envFrom:
+          - secretRef:
+              name: clickhouse-secret-env-$ENVIRONMENT
+        env:
+          - name: ENVIRONMENT
+            value: "$ENVIRONMENT"
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  generation: 1
+  labels:
+    app: clickhouse
+    env: loc
+  name: clickhouse-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: clickhouse
+      env: loc
+  template:
+    metadata:
+      labels:
+        app: clickhouse
+        env: loc
+    spec:
+      containers:
+      - image: "$DYNAMIC_IMAGE_NAME"
+        imagePullPolicy: IfNotPresent
+        name: clickhouse-client
+        command: ["/bin/sh"]
+        args:
+        - '-c'
+        - 'clickhouse client --host clickhouse-webserver --query "SELECT version()";tail -f /dev/null'
+        resources:
+          limits:
+            cpu: 200m
+            memory: 2G
+          requests:
+            cpu: 1m
+            memory: 1G
+        envFrom:
+          - secretRef:
+              name: clickhouse-secret-env-$ENVIRONMENT
+        env:
+          - name: ENVIRONMENT
+            value: "$ENVIRONMENT"
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: clickhouse
+    env: loc
+    type: webserver
+  name: clickhouse-webserver
+spec:
+  ports:
+  - port: 9000
+    name: webserver
+    protocol: TCP
+    targetPort: 9000
+  - port: 8123
+    name: client
+    protocol: TCP
+    targetPort: 8123
+  selector:
+    app: clickhouse
+    env: loc
+    type: webserver
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  labels:
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  name: clickhouse-loc
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: clickhouse.test
+    http:
+      paths:
+      - backend:
+          service:
+            name: clickhouse-webserver
+            port:
+              number: 8123
+        path: /
+        pathType: Prefix
+---
