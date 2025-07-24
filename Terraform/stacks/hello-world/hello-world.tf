@@ -4,18 +4,18 @@ check "health_check" {
   }
 
   assert {
-    condition = data.http.opentofu_org.status_code == 200
+    condition     = data.http.opentofu_org.status_code == 200
     error_message = "${data.http.opentofu_org.url} returned an unhealthy status code"
   }
 }
 locals {
-  mylocvar=jsondecode(file("./test.json"))
+  mylocvar = jsondecode(file("./test.json"))
 }
-output "madata" {value = "${local.mylocvar.Gods}"}
+output "madata" { value = local.mylocvar.Gods }
 
 provider "kubernetes" {
   config_path = "~/.kube/config"
-  host = "https://127.0.0.1:6443"
+  host        = "https://127.0.0.1:6443"
 }
 resource "kubernetes_namespace" "example" {
   metadata {
@@ -25,7 +25,7 @@ resource "kubernetes_namespace" "example" {
 
 resource "kubernetes_deployment" "hello_world" {
   metadata {
-    name = "hello-world"
+    name      = "hello-world"
     namespace = "my-first-namespace"
     labels = {
       app = "hello-world"
@@ -62,7 +62,7 @@ resource "kubernetes_deployment" "hello_world" {
 
 resource "kubernetes_service" "hello_world" {
   metadata {
-    name = "hello-world"
+    name      = "hello-world"
     namespace = "my-first-namespace"
   }
 
@@ -80,7 +80,7 @@ resource "kubernetes_service" "hello_world" {
 resource "kubernetes_ingress_v1" "example" {
   wait_for_load_balancer = true
   metadata {
-    name = "example"
+    name      = "example"
     namespace = "my-first-namespace"
   }
   spec {

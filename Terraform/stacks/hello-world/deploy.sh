@@ -1,3 +1,4 @@
 tofu init
-tofu plan -out hello-world.plan
-tofu apply "hello-world.plan"
+tofu destroy --auto-approve
+tofu plan -out hello-world.tfplan
+tofu apply hello-world.tfplan 
