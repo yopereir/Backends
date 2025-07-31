@@ -49,5 +49,5 @@ helm template clearml/clearml --output-dir ./stacks/helm/generated/ -f ./stacks/
 kubectl apply -R -f ./stacks/helm/generated/* --namespace $NAMESPACE
 
 # View GUI from browser
-kubectl port-forward svc/clearml-webserver 8080:80 --namespace $NAMESPACE
-kubectl port-forward svc/clearml-apiserver 8008:80 --namespace $NAMESPACE
+#kubectl port-forward svc/clearml-webserver 8080:80 --namespace $NAMESPACE
+#kubectl port-forward svc/clearml-apiserver 8008:80 --namespace $NAMESPACE

@@ -100,15 +100,6 @@ spec:
             exec:
               command:
                 - /bitnami/scripts/ping-mongodb.sh
-          readinessProbe:
-            failureThreshold: 6
-            initialDelaySeconds: 5
-            periodSeconds: 10
-            successThreshold: 1
-            timeoutSeconds: 5
-            exec:
-              command:
-                - /bitnami/scripts/readiness-probe.sh
           resources:
             limits: {}
             requests: {}
