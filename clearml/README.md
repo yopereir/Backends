@@ -1,5 +1,5 @@
 # ClearML
-OLAP data analytics framework.
+Framework for training AI models.
 
 # How Tos
 * Connect to deployed clearml server
