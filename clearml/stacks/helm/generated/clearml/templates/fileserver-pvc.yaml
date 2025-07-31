@@ -1,0 +1,18 @@
+---
+# Source: clearml/templates/fileserver-pvc.yaml
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: clearml-fileserver-data
+  labels:
+    helm.sh/chart: clearml-7.14.6
+    app.kubernetes.io/name: clearml
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "2.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: "50Gi"

@@ -1,0 +1,106 @@
+---
+# Source: clearml/templates/fileserver-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clearml-fileserver
+  labels:
+    helm.sh/chart: clearml-7.14.6
+    app.kubernetes.io/name: clearml
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "2.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: clearml
+      app.kubernetes.io/instance: clearml-fileserver
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: clearml
+        app.kubernetes.io/instance: clearml-fileserver
+    spec:
+      serviceAccountName: clearml-fileserver
+      volumes:
+        - name: fileserver-data
+          persistentVolumeClaim:
+            claimName: clearml-fileserver-data
+      securityContext:
+        
+        {}
+      initContainers:
+        - name: init-fileserver
+          image: "docker.io/allegroai/clearml:2.0.0-613"
+          command:
+            - /bin/sh
+            - -c
+            - >
+              set -x;
+              while [ $(curl -sw '%{http_code}' "http://clearml-apiserver:8008/debug.ping" -o /dev/null) -ne 200 ] ; do
+                echo "waiting for apiserver" ;
+                sleep 5 ;
+              done
+          securityContext:
+            
+            {}
+          resources:
+            limits:
+              cpu: 10m
+              memory: 64Mi
+            requests:
+              cpu: 10m
+              memory: 64Mi
+      containers:
+        - name: clearml-fileserver
+          image: "docker.io/allegroai/clearml:2.0.0-613"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8081
+              protocol: TCP
+          env:
+          - name: CLEARML__HOSTS__API_SERVER
+            value: "http://clearml-apiserver:8008"
+          - name: CLEARML_REDIS_SERVICE_HOST
+            value: release-name-redis-master
+          - name: CLEARML_REDIS_SERVICE_PORT
+            value: "6379"
+          - name: USER_KEY
+            valueFrom:
+              secretKeyRef:
+                name: "clearml-conf"
+                key: fileserver_key
+          - name: USER_SECRET
+            valueFrom:
+              secretKeyRef: 
+                name: "clearml-conf"
+                key: fileserver_secret
+          args:
+            - fileserver
+          livenessProbe:
+            exec:
+              command:
+                - curl
+                - -X OPTIONS
+                - http://localhost:8081/
+          readinessProbe:
+            exec:
+              command:
+                - curl
+                - -X OPTIONS
+                - http://localhost:8081/
+          volumeMounts:
+            - name: fileserver-data
+              mountPath: /mnt/fileserver
+          resources:
+            limits:
+              cpu: 2000m
+              memory: 1Gi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          securityContext:
+            
+            {}

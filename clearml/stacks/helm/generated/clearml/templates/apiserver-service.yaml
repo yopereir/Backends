@@ -1,0 +1,22 @@
+---
+# Source: clearml/templates/apiserver-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: clearml-apiserver
+  labels:
+    helm.sh/chart: clearml-7.14.6
+    app.kubernetes.io/name: clearml
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "2.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: NodePort
+  ports:
+    - port: 8008
+      targetPort: 8008
+      nodePort: 30008
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: clearml
+    app.kubernetes.io/instance: clearml-apiserver

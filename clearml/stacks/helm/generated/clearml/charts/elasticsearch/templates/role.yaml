@@ -1,0 +1,20 @@
+---
+# Source: clearml/charts/elasticsearch/templates/role.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: "clearml-elastic-master"
+  labels:
+    heritage: "Helm"
+    release: "release-name"
+    chart: "elasticsearch-7.17.3"
+    app: "clearml-elastic-master"
+rules:
+  - apiGroups:
+      - extensions
+    resources:
+      - podsecuritypolicies
+    resourceNames:
+      - "clearml-elastic-master"
+    verbs:
+      - use

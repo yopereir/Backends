@@ -1,0 +1,19 @@
+---
+# Source: clearml/charts/elasticsearch/templates/rolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: "clearml-elastic-master"
+  labels:
+    heritage: "Helm"
+    release: "release-name"
+    chart: "elasticsearch-7.17.3"
+    app: "clearml-elastic-master"
+subjects:
+  - kind: ServiceAccount
+    name: "clearml-elastic-master"
+    namespace: "clearml"
+roleRef:
+  kind: Role
+  name: "clearml-elastic-master"
+  apiGroup: rbac.authorization.k8s.io

@@ -1,0 +1,144 @@
+---
+# Source: clearml/templates/apiserver-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clearml-apiserver
+  labels:
+    helm.sh/chart: clearml-7.14.6
+    app.kubernetes.io/name: clearml
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "2.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: clearml
+      app.kubernetes.io/instance: clearml-apiserver
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: clearml
+        app.kubernetes.io/instance: clearml-apiserver
+    spec:
+      serviceAccountName: clearml-apiserver
+      securityContext:
+        
+        {}
+      initContainers:
+        - name: init-apiserver
+          image: "docker.io/allegroai/clearml:2.0.0-613"
+          command:
+            - /bin/sh
+            - -c
+            - >
+              set -x;
+              while [ $(curl -sw '%{http_code}' "http://clearml-elastic-master:9200/_cluster/health" -o /dev/null) -ne 200 ] ; do
+                echo "waiting for elasticsearch" ;
+                sleep 5 ;
+              done ;
+              while [ $(curl --telnet-option BOGUS --connect-timeout 2 -s "telnet://release-name-mongodb:27017" -o /dev/null; echo $?) -ne 49 ] ; do
+                echo "waiting for mongodb" ;
+                sleep 5 ;
+              done ;
+              while [ $(curl --telnet-option BOGUS --connect-timeout 2 -s "telnet://release-name-redis-master:6379" -o /dev/null; echo $?) -ne 49 ] ; do
+                echo "waiting for redis" ;
+                sleep 5 ;
+              done ;
+          securityContext:
+            
+            {}
+          resources:
+            limits:
+              cpu: 10m
+              memory: 64Mi
+            requests:
+              cpu: 10m
+              memory: 64Mi
+      containers:
+        - name: clearml-apiserver
+          image: "docker.io/allegroai/clearml:2.0.0-613"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8008
+              protocol: TCP
+          env:
+          - name: CLEARML__HOSTS__ELASTIC__WORKERS__HOSTS
+            value: "[{\"host\":\"clearml-elastic-master\",\"port\":9200,\"scheme\":\"\"}]"
+          - name: CLEARML__HOSTS__ELASTIC__EVENTS__HOSTS
+            value: "[{\"host\":\"clearml-elastic-master\",\"port\":9200,\"scheme\":\"\"}]"
+          - name: CLEARML__HOSTS__ELASTIC__DATASETS__HOSTS
+            value: "[{\"host\":\"clearml-elastic-master\",\"port\":9200,\"scheme\":\"\"}]"
+          - name: CLEARML__HOSTS__ELASTIC__LOGS__HOSTS
+            value: "[{\"host\":\"clearml-elastic-master\",\"port\":9200,\"scheme\":\"\"}]"
+          - name: CLEARML_MONGODB_SERVICE_CONNECTION_STRING
+            value: "mongodb://release-name-mongodb:27017"
+          - name: CLEARML_REDIS_SERVICE_HOST
+            value: release-name-redis-master
+          - name: CLEARML_REDIS_SERVICE_PORT
+            value: "6379"
+          - name: CLEARML_CONFIG_PATH
+            value: /opt/clearml/config
+          - name: CLEARML__apiserver__default_company_name
+            value: "d1bd92a3b039400cbafc60a7a5b1e52b"
+          - name: CLEARML__APISERVER__AUTH__SESSION_AUTH_COOKIE_NAME
+            value: clearml-token-k8s
+          - name: CLEARML__secure__credentials__apiserver__user_key
+            valueFrom:
+              secretKeyRef:
+                name: "clearml-conf"
+                key: apiserver_key
+          - name: CLEARML__secure__credentials__apiserver__user_secret
+            valueFrom:
+              secretKeyRef:
+                name: "clearml-conf"
+                key: apiserver_secret
+          - name: CLEARML__secure__auth__token_secret
+            valueFrom:
+              secretKeyRef:
+                name: "clearml-conf"
+                key: secure_auth_token_secret
+          - name: CLEARML__APISERVER__PRE_POPULATE__ENABLED
+            value: "true"
+          - name: CLEARML__APISERVER__PRE_POPULATE__ZIP_FILES
+            value: "/opt/clearml/db-pre-populate"
+          - name: CLEARML__SECURE__CREDENTIALS__TESTS__USER_KEY
+            valueFrom:
+              secretKeyRef:
+                name: "clearml-conf"
+                key: test_user_key
+          - name: CLEARML__SECURE__CREDENTIALS__TESTS__USER_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: "clearml-conf"
+                key: test_user_secret
+          - name: CLEARML_ENV
+            value: "helm-cloud"
+          args:
+            - apiserver
+          livenessProbe:
+            initialDelaySeconds: 60
+            httpGet:
+              path: /debug.ping
+              port: 8008
+          readinessProbe:
+            initialDelaySeconds: 60
+            failureThreshold: 8
+            httpGet:
+              path: /debug.ping
+              port: 8008
+              httpHeaders:
+                - name: Authorization
+                  value: Basic R0s0UFJUVlQzNzA2VDI1SzZCQTE6eW1MaDFvazVrNXhOVVFmUzk0NFhkeDl4amYwd3Vlb2txS00yZE1aZkh1SDlheUl0RzI=
+          resources:
+            limits:
+              cpu: 2000m
+              memory: 1Gi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          securityContext:
+            
+            {}

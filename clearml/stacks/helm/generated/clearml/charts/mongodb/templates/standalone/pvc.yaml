@@ -1,0 +1,21 @@
+---
+# Source: clearml/charts/mongodb/templates/standalone/pvc.yaml
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: release-name-mongodb
+  namespace: "clearml"
+  labels:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: mongodb
+    app.kubernetes.io/version: 6.0.10
+    helm.sh/chart: mongodb-13.18.5
+    app.kubernetes.io/component: mongodb
+  annotations:
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  resources:
+    requests:
+      storage: "50Gi"

@@ -1,0 +1,13 @@
+---
+# Source: clearml/templates/webserver-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "clearml-webserver-configmap"
+  labels:
+    helm.sh/chart: clearml-7.14.6
+    app.kubernetes.io/name: clearml
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "2.0"
+    app.kubernetes.io/managed-by: Helm
+data:

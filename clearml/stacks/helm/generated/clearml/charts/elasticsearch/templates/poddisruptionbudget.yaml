@@ -1,0 +1,11 @@
+---
+# Source: clearml/charts/elasticsearch/templates/poddisruptionbudget.yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: "clearml-elastic-master-pdb"
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: "clearml-elastic-master"

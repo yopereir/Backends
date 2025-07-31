@@ -1,0 +1,14 @@
+---
+# Source: clearml/charts/elasticsearch/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: clearml-elastic-master-config
+  labels:
+    heritage: "Helm"
+    release: "release-name"
+    chart: "elasticsearch"
+    app: "clearml-elastic-master"
+data:
+  elasticsearch.yml: |
+    xpack.security.enabled: false

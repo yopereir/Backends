@@ -1,0 +1,94 @@
+---
+# Source: clearml/templates/webserver-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clearml-webserver
+  labels:
+    helm.sh/chart: clearml-7.14.6
+    app.kubernetes.io/name: clearml
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "2.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: clearml
+      app.kubernetes.io/instance: clearml-webserver
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: clearml
+        app.kubernetes.io/instance: clearml-webserver
+    spec:
+      serviceAccountName: clearml-webserver
+      volumes:
+        - name: webserver-config
+          configMap:
+            name: "clearml-webserver-configmap"
+      securityContext:
+        
+        {}
+      initContainers:
+        - name: init-webserver
+          image: "docker.io/allegroai/clearml:2.0.0-613"
+          command:
+            - /bin/sh
+            - -c
+            - >
+              set -x;
+              while [ $(curl -sw '%{http_code}' "http://clearml-apiserver:8008/debug.ping" -o /dev/null) -ne 200 ] ; do
+                echo "waiting for apiserver" ;
+                sleep 5 ;
+              done
+          securityContext:
+            
+            {}
+          resources:
+            limits:
+              cpu: 10m
+              memory: 64Mi
+            requests:
+              cpu: 10m
+              memory: 64Mi
+      containers:
+        - name: clearml-webserver
+          image: "docker.io/allegroai/clearml:2.0.0-613"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            exec:
+              command:
+                - curl
+                - -X OPTIONS
+                - http://localhost:80/
+          readinessProbe:
+            exec:
+              command:
+                - curl
+                - -X OPTIONS
+                - http://localhost:80/
+          env:
+          - name: NGINX_APISERVER_ADDRESS
+            value: "http://clearml-apiserver:8008"
+          - name: NGINX_FILESERVER_ADDRESS
+            value: "http://clearml-fileserver:8081"
+          args:
+            - webserver
+          volumeMounts:
+            - name: webserver-config
+              mountPath: /mnt/external_files/configs
+          resources:
+            limits:
+              cpu: 2000m
+              memory: 1Gi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          securityContext:
+            
+            {}

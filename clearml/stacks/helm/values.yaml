@@ -1,0 +1,3 @@
+mongodb:
+  readinessProbe:
+    enabled: false
