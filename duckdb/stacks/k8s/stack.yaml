@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: duckdb-ui-deployment
+  labels:
+    app: duckdb-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: duckdb-ui
+  template:
+    metadata:
+      labels:
+        app: duckdb-ui
+    spec:
+      containers:
+      - name: duckdb-ui
+        image: "$DYNAMIC_IMAGE_NAME"
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8080
+        command: ["/bin/sh"]
+        args: ["-c", "tail -f /dev/null"]
+        #args: ["-ui", "-c", "CALL start_ui();", "/data/test.duckdb"]
+        volumeMounts:
+          - name: duckdb-storage
+            mountPath: /data/test.duckdb
+      volumes:
+        - name: duckdb-storage
+          hostPath:
+            path: $PWD/test.duckdb
+            type: FileOrCreate 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: duckdb-ui-service
+spec:
+  selector:
+    app: duckdb-ui
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: duckdb-ui-ingress
+spec:
+  rules:
+  - host: duckdb.test
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: duckdb-ui-service
+            port:
+              number: 80
+---
