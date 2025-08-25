@@ -3,7 +3,7 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: "release-name-anqfd-test"
+  name: "release-name-vptzr-test"
   annotations:
     "helm.sh/hook": test
     "helm.sh/hook-delete-policy": hook-succeeded
@@ -12,7 +12,7 @@ spec:
     fsGroup: 1000
     runAsUser: 1000
   containers:
-  - name: "release-name-ohkbk-test"
+  - name: "release-name-sftyg-test"
     image: "docker.elastic.co/elasticsearch/elasticsearch:7.17.3"
     imagePullPolicy: "IfNotPresent"
     command:

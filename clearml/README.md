@@ -5,7 +5,7 @@ Framework for training AI models.
 * Connect to deployed clearml server
     - Install clearml library for python `python -m pip install clearml`.
     - Make sure clearml-apiserver and clearml-webserver are running at localhost:8008 and localhost:8080 respectively.
-    - Go here(http://localhost:8080/settings/workspace-configuration) to get credentials then type `clearml-init` in terminal.
+    - Go here(http://localhost:8080/settings/workspace-configuration) to get credentials then type `clearml-init` in terminal. If you do not see it, clear site **Storage** in browser and refresh. Then login.
     - Then run `python ./scripts/tests/createTask.py`.
 
 ## Conventions
