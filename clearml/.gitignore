@@ -1,0 +1,6 @@
+data
+MNIST
+outputs
+runs
+**/*.pth
+**/__pycache__
