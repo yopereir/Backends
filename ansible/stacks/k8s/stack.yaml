@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  generation: 1
+  labels:
+    app: ansible
+    env: loc
+    type: webserver
+  name: ansible
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ansible
+      env: loc
+      type: webserver
+  template:
+    metadata:
+      labels:
+        app: ansible
+        env: loc
+        type: webserver
+    spec:
+      containers:
+      - image: "$DYNAMIC_IMAGE_NAME"
+        imagePullPolicy: IfNotPresent
+        command: ["/bin/bash"]
+        args: ["-c", "tail -f /dev/null"]
+        name: ansible-server
+        resources:
+          limits:
+            cpu: 200m
+            memory: 2G
+          requests:
+            cpu: 1m
+            memory: 1G
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+---

@@ -39,10 +39,13 @@ kubectl create namespace $NAMESPACE
 ## Install Helm chart
 # helm repo add awx-operator https://ansible-community.github.io/awx-operator-helm/
 ## Generate k8s objects from helm chart
-rm -rf ./stacks/helm/generated/*
-helm template awx-operator/awx-operator --output-dir ./stacks/helm/generated/ -f ./stacks/helm/values.yaml --set fullnameOverride=ansible --namespace $NAMESPACE
+#rm -rf ./stacks/helm/generated/*
+#helm template awx-operator/awx-operator --output-dir ./stacks/helm/generated/ -f ./stacks/helm/values.yaml --set fullnameOverride=ansible --namespace $NAMESPACE
+
 ## Deploy k8s objects
-kubectl apply -R -f ./stacks/helm/generated/* --namespace $NAMESPACE
+# Build docker image
+docker build -t $DYNAMIC_IMAGE_NAME -f ./stacks/k8s/Dockerfile .
+find ./stacks/k8s/ -name '*.yaml' -exec sh -c 'envsubst < "$1" | kubectl apply -f - --namespace $NAMESPACE' _ {} \;
 
 # View GUI from browser
 #kubectl port-forward svc/clearml-webserver 8080:8080 --namespace $NAMESPACE
