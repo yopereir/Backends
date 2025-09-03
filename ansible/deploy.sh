@@ -39,11 +39,11 @@ kubectl create namespace $NAMESPACE
 ## Install Helm chart
 # helm repo add awx-operator https://ansible-community.github.io/awx-operator-helm/
 ## Generate k8s objects from helm chart
-rm -rf ./stacks/helm/generated/*
-helm template awx-operator/awx-operator --output-dir ./stacks/helm/generated/ -f ./stacks/helm/values.yaml --set fullnameOverride=ansible --namespace $NAMESPACE
-find ./stacks/helm/ -name '*.yaml' -exec sh -c 'envsubst < "$1" | kubectl apply -f - --namespace $NAMESPACE' _ {} \;
+rm -rf ./stacks/helm-awx/generated/*
+helm template awx-operator/awx-operator --output-dir ./stacks/helm-awx/generated/ -f ./stacks/helm-awx/values.yaml --set fullnameOverride=ansible --namespace $NAMESPACE
+find ./stacks/helm-awx/ -name '*.yaml' -exec sh -c 'envsubst < "$1" | kubectl apply -f - --namespace $NAMESPACE' _ {} \;
 ## Deploy k8s objects
-kubectl apply -R -f ./stacks/helm/generated/* --namespace $NAMESPACE
+kubectl apply -R -f ./stacks/helm-awx/generated/* --namespace $NAMESPACE
 
 ## Deploy k8s objects
 # Build docker image
