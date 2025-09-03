@@ -1,0 +1,7 @@
+# Run using this command: ansible-playbook -i localhost, -c local playbook.yaml
+---
+- name: Test role example
+  hosts: localhost
+  gather_facts: false
+  roles:
+    - hello
