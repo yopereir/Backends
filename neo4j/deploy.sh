@@ -39,7 +39,7 @@ kubectl create namespace $NAMESPACE
 
 # Deploy Kubernetes resources
 kubectl create secret generic  neo4j-secret --from-env-file=./secrets/.env.$ENVIRONMENT --namespace $NAMESPACE
-find ./stacks/k8s/$STACK/ -name '*.yaml' -exec sh -c 'envsubst < "$1" | kubectl apply -f - --namespace $NAMESPACE' _ {} \;
+find ./stacks/k8s/ -name '*.yaml' -exec sh -c 'envsubst < "$1" | kubectl apply -f - --namespace $NAMESPACE' _ {} \;
 
 # View GUI from browser and connect to server
 #kubectl port-forward svc/svc-neo4j 7474:7474 7687:7687 --namespace $NAMESPACE
