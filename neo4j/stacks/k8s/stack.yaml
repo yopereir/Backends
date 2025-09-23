@@ -79,12 +79,3 @@ spec:
                 name: svc-neo4j
                 port:
                   number: 7474
-      neo4j:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: svc-neo4j
-                port:
-                  number: 7474
