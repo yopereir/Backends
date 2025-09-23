@@ -1,0 +1,224 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: neo4j-mcp-neo4j-cloud-aura-api
+  labels:
+    app: neo4j-mcp
+    type: cloud-aura-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: neo4j-mcp
+      type: cloud-aura-api
+  template:
+    metadata:
+      labels:
+        app: neo4j-mcp
+        type: cloud-aura-api
+    spec:
+      containers:
+      - name: neo4j-mcp-neo4j-cloud-aura-api
+        image: "mcp-neo4j-cloud-aura-api-$ENVIRONMENT"
+        imagePullPolicy: Never
+        ports:
+          - containerPort: 8080
+        envFrom:
+        - secretRef:
+            name: mcp-neo4j-cloud-aura-api-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-neo4j-mcp-neo4j-cloud-aura-api
+  labels:
+    app: neo4j-mcp
+    type: cloud-aura-api
+spec:
+  selector:
+    app: neo4j-mcp
+    type: cloud-aura-api
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: neo4j-mcp-neo4j-cypher
+  labels:
+    app: neo4j-mcp
+    type: cypher
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: neo4j-mcp
+      type: cypher
+  template:
+    metadata:
+      labels:
+        app: neo4j-mcp
+        type: cypher
+    spec:
+      containers:
+      - name: neo4j-mcp-neo4j-cypher
+        image: "mcp-neo4j-cypher-$ENVIRONMENT"
+        imagePullPolicy: Never
+        ports:
+          - containerPort: 8080
+        envFrom:
+        - secretRef:
+            name: mcp-neo4j-cypher-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-neo4j-mcp-neo4j-cypher
+  labels:
+    app: neo4j-mcp
+    type: cypher
+spec:
+  selector:
+    app: neo4j-mcp
+    type: cypher
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: neo4j-mcp-neo4j-data-modeling
+  labels:
+    app: neo4j-mcp
+    type: data-modeling
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: neo4j-mcp
+      type: data-modeling
+  template:
+    metadata:
+      labels:
+        app: neo4j-mcp
+        type: data-modeling
+    spec:
+      containers:
+      - name: neo4j-mcp-neo4j-data-modeling
+        image: "mcp-neo4j-data-modeling-$ENVIRONMENT"
+        imagePullPolicy: Never
+        ports:
+          - containerPort: 8080
+        envFrom:
+        - secretRef:
+            name: mcp-neo4j-data-modeling-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-neo4j-mcp-neo4j-data-modeling
+  labels:
+    app: neo4j-mcp
+    type: data-modeling
+spec:
+  selector:
+    app: neo4j-mcp
+    type: data-modeling
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: neo4j-mcp-neo4j-memory
+  labels:
+    app: neo4j-mcp
+    type: memory
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: neo4j-mcp
+      type: memory
+  template:
+    metadata:
+      labels:
+        app: neo4j-mcp
+        type: memory
+    spec:
+      containers:
+      - name: neo4j-mcp-neo4j-memory
+        image: "mcp-neo4j-memory-$ENVIRONMENT"
+        imagePullPolicy: Never
+        ports:
+          - containerPort: 8080
+        envFrom:
+        - secretRef:
+            name: mcp-neo4j-memory-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-neo4j-mcp-neo4j-memory
+  labels:
+    app: neo4j-mcp
+    type: memory
+spec:
+  selector:
+    app: neo4j-mcp
+    type: memory
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: neo4j-mcp
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: mcp.neo4j.test
+      http:
+        paths:
+          - path: /cloud-aura-api
+            pathType: Prefix
+            backend:
+              service:
+                name: svc-neo4j-mcp-neo4j-cloud-aura-api
+                port:
+                  number: 8080
+          - path: /cypher
+            pathType: Prefix
+            backend:
+              service:
+                name: svc-neo4j-mcp-neo4j-cypher
+                port:
+                  number: 8080
+          - path: /data-modeling
+            pathType: Prefix
+            backend:
+              service:
+                name: svc-neo4j-mcp-neo4j-data-modeling
+                port:
+                  number: 8080
+          - path: /memory
+            pathType: Prefix
+            backend:
+              service:
+                name: svc-neo4j-mcp-neo4j-memory
+                port:
+                  number: 8080

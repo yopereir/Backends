@@ -4,15 +4,18 @@ metadata:
   name: neo4j
   labels:
     app: neo4j
+    type: mainserver
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: neo4j
+      type: mainserver
   template:
     metadata:
       labels:
         app: neo4j
+        type: mainserver
     spec:
       containers:
       - name: neo4j
@@ -42,9 +45,11 @@ metadata:
   name: svc-neo4j
   labels:
     app: neo4j
+    type: mainserver
 spec:
   selector:
     app: neo4j
+    type: mainserver
   ports:
     - name: http
       port: 7474
@@ -62,9 +67,19 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
+  ingressClassName: nginx
   rules:
     - host: neo4j.test
       http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: svc-neo4j
+                port:
+                  number: 7474
+      neo4j:
         paths:
           - path: /
             pathType: Prefix
