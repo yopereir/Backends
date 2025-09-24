@@ -59,4 +59,7 @@ kubectl create secret generic mcp-neo4j-memory-secret --from-env-file=./secrets/
 find ./stacks/k8s/ -name '*.yaml' -exec sh -c 'envsubst < "$1" | kubectl apply -f - --namespace $NAMESPACE' _ {} \;
 
 # View GUI from browser and connect to server
-#kubectl port-forward svc/svc-neo4j 7474:7474 7687:7687 --namespace $NAMESPACE
+#kubectl port-forward svc/svc-neo4j-mcp-neo4j-cloud-aura-api 8081:8080 -n $NAMESPACE
+#kubectl port-forward svc/svc-neo4j-mcp-neo4j-cypher 8082:8080 -n $NAMESPACE
+#kubectl port-forward svc/svc-neo4j-mcp-neo4j-data-modeling 8083:8080 -n $NAMESPACE
+#kubectl port-forward svc/svc-neo4j-mcp-neo4j-memory 8084:8080 -n $NAMESPACE

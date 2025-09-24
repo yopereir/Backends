@@ -1,0 +1,30 @@
+{
+  "selectedAuthType": "gemini-api-key",
+  "theme": "Default",
+  "mcpServers": {
+    "neo4j-cloud-aura-api": {
+      "command": null,
+      "transport": "http",
+      "host": "http://neo4j.test",
+      "path": "/cloud-aura-api"
+    },
+    "neo4j-cypher": {
+      "command": null,
+      "transport": "http",
+      "host": "http://neo4j.test",
+      "path": "/cypher"
+    },
+    "neo4j-data-modeling": {
+      "command": null,
+      "transport": "http",
+      "host": "http://neo4j.test",
+      "path": "/data-modeling"
+    },
+    "neo4j-memory": {
+      "command": null,
+      "transport": "http",
+      "host": "http://neo4j.test",
+      "path": "/memory"
+    }
+  }
+}
