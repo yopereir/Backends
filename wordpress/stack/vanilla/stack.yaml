@@ -1,0 +1,162 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: wp-content-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wordpress-db
+  labels:
+    app: mysql
+spec:
+  ports:
+    - port: 3306
+  clusterIP: None
+  selector:
+    app: mysql
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql-db
+spec:
+  selector:
+    matchLabels:
+      app: mysql
+  serviceName: "wordpress-db"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.0
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: wordpress-secret
+                  key: MYSQL_ROOT_PASSWORD
+            - name: MYSQL_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: wordpress-secret
+                  key: MYSQL_DATABASE_NAME
+          ports:
+            - containerPort: 3306
+              name: mysql
+          volumeMounts:
+            - name: mysql-data
+              mountPath: /var/lib/mysql
+  volumeClaimTemplates:
+    - metadata:
+        name: mysql-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 5Gi
+---
+# Service for the WordPress Deployment
+apiVersion: v1
+kind: Service
+metadata:
+  name: wordpress-svc
+spec:
+  selector:
+    app: wordpress-webserver
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+---
+# Deployment for Public WordPress Pods
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wordpress-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wordpress-webserver
+  template:
+    metadata:
+      labels:
+        app: wordpress-webserver
+    spec:
+      containers:
+        - name: wordpress
+          image: wordpress:latest
+          env:
+            - name: WORDPRESS_DB_HOST
+              value: "wordpress-db"
+            - name: WORDPRESS_DB_USER
+              value: "root"
+            - name: WORDPRESS_DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: wordpress-secret
+                  key: MYSQL_DATABASE_NAME
+            - name: WORDPRESS_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: wordpress-secret
+                  key: MYSQL_ROOT_PASSWORD
+          # Mount other secrets (salts) as environment variables
+          envFrom:
+            - secretRef:
+                name: wordpress-secret
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: wordpress-content
+              mountPath: /var/www/html/wp-content
+      volumes:
+        - name: wordpress-content
+          persistentVolumeClaim:
+            claimName: wp-content-pvc
+---
+# Ingress to route traffic based on URL path
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: wordpress-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    # Add other annotations as needed, e.g., for cert-manager
+spec:
+  rules:
+  - host: wordpress.test
+    http:
+      paths:
+      - path: /wp-admin(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: wordpress-svc
+            port:
+              number: 80
+      - path: /wp-login.php
+        pathType: Exact
+        backend:
+          service:
+            name: wordpress-svc
+            port:
+              number: 80
+      - path: /()(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: wordpress-svc
+            port:
+              number: 80
