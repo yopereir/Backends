@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: obot
+  labels:
+    app: obot
+    type: mainserver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: obot
+      type: mainserver
+  template:
+    metadata:
+      labels:
+        app: obot
+        type: mainserver
+    spec:
+      containers:
+      - name: obot
+        image: "$DYNAMIC_IMAGE_NAME"
+        imagePullPolicy: Never
+        ports:
+          - containerPort: 8080  # HTTP UI
+          - containerPort: 7687  # Bolt protocol
+        envFrom:
+        - secretRef:
+            name: obot-secret
+        volumeMounts:
+          - name: obot-data
+            mountPath: /data
+          - name: obot-logs
+            mountPath: /logs
+      volumes:
+        - name: obot-data
+          emptyDir: {}
+        - name: obot-logs
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-obot
+  labels:
+    app: obot
+    type: mainserver
+spec:
+  selector:
+    app: obot
+    type: mainserver
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: obot
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: obot.test
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: svc-obot
+                port:
+                  number: 8080

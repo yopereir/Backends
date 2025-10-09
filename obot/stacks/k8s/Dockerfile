@@ -1,0 +1,1 @@
+FROM ghcr.io/obot-platform/obot:latest
