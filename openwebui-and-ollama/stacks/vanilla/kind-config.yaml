@@ -1,0 +1,8 @@
+# Use this ONLY if using Kind.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+- role: control-plane
+  extraMounts:
+  - hostPath: C:/Users/yohan/Desktop/Backends/openwebui-and-ollama/models
+    containerPath: /mounts/ollama/models

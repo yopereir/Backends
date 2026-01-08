@@ -1,6 +1,6 @@
 export NAMESPACE="openwebui"
-export DYNAMIC_IMAGE_NAME=$NAMESPACE"-test"
-export DYNAMIC_IMAGE_NAME_OLLAMA=$NAMESPACE"-test""-ollama"
+export DYNAMIC_IMAGE_NAME=$NAMESPACE
+export DYNAMIC_IMAGE_NAME_OLLAMA=$NAMESPACE"-ollama"
 
 while test $# -gt 0; do
   case "$1" in
