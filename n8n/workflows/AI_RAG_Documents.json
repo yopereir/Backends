@@ -1,0 +1,284 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        1504,
+        576
+      ],
+      "id": "8191b74f-578e-432d-bd7b-68841422ed2c",
+      "name": "When Chat Message Received",
+      "webhookId": "4017520c-cea7-498a-91ea-074cb79455f6"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a helpful assistant. Use the provided information about Pageflex dental insurance to provide insurance details from the document."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        1680,
+        576
+      ],
+      "id": "b1a7df2b-ab89-4a98-84cd-17ce5c3646ca",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1680,
+        1008
+      ],
+      "id": "93fa1190-6a1d-40c0-8868-1c5fee7db284",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "3iXs0LXE9pWMLf49",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "insurance_search",
+        "description": "Use this tool to get dental insurance information."
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
+      "typeVersion": 1,
+      "position": [
+        1872,
+        816
+      ],
+      "id": "da42937d-053f-40a7-aaad-c6b8e7c1d3c0",
+      "name": "Vector Store Tool"
+    },
+    {
+      "parameters": {
+        "memoryKey": "vector_store_key"
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.3,
+      "position": [
+        1792,
+        1008
+      ],
+      "id": "74d99bc4-0d43-4afc-801d-56cf634122ab",
+      "name": "Vector Store (Retrieve Mode)"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "memoryKey": "vector_store_key"
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.3,
+      "position": [
+        2176,
+        368
+      ],
+      "id": "95e31ab7-a6ce-48eb-9285-b957c446e842",
+      "name": "Vector Store (Insert Mode)"
+    },
+    {
+      "parameters": {
+        "url": "https://www.progressive.com/content/pdf/benefits/2022/2022-Dental-Plan-Side-By-Side-Comparison.pdf",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1952,
+        368
+      ],
+      "id": "f3cde268-eb14-4c5a-9151-7a3348a7c5be",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        2176,
+        1184
+      ],
+      "id": "db4db9cb-990d-4fa6-b740-adffaa09f7ed",
+      "name": "Embeddings Google Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "3iXs0LXE9pWMLf49",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1,
+      "position": [
+        2272,
+        592
+      ],
+      "id": "cc513384-ef3e-4324-b33a-da95751b8a77",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        2272,
+        752
+      ],
+      "id": "0a5f0e10-b824-4c2c-8531-904b1babab34",
+      "name": "Recursive Character Text Splitter"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1776,
+        816
+      ],
+      "id": "7d9b0020-1c58-46ab-93f3-e45fd4c7659e",
+      "name": "Simple Memory"
+    }
+  ],
+  "connections": {
+    "When Chat Message Received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Vector Store Tool",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vector Store Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vector Store (Retrieve Mode)": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "Vector Store Tool",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Vector Store (Insert Mode)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Vector Store (Insert Mode)",
+            "type": "ai_embedding",
+            "index": 0
+          },
+          {
+            "node": "Vector Store (Retrieve Mode)",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Vector Store (Insert Mode)",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6288294bf41b76677d9877cbee2596f3c547ada4920875435a8ccfab8eef79a9"
+  }
+}
