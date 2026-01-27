@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apache-httpd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: apache
+  template:
+    metadata:
+      labels:
+        app: apache
+    spec:
+      containers:
+      - name: httpd
+        image: httpd:latest
+        ports:
+        - containerPort: 80
+        envFrom:
+        - secretRef:
+            name: httpd-env
+        volumeMounts:
+        - name: config-modules
+          mountPath: /usr/local/apache2/conf/httpd.conf
+          subPath: httpd.conf
+        - name: config-modules
+          mountPath: /usr/local/apache2/conf/extra/custom.conf
+          subPath: custom.conf
+      volumes:
+      - name: httpd-env
+        secret:
+          secretName: httpd-env
+      - name: config-modules
+        configMap:
+          name: config-modules
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: apache-httpd
+spec:
+  selector:
+    app: apache
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+  type: LoadBalancer

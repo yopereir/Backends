@@ -1,0 +1,22 @@
+sources:
+  apache_source:
+    type: apache_metrics
+    endpoints:
+      - "http://apache-httpd.apache-httpd.svc.cluster.local/server-status?auto"
+    scrape_interval_secs: 15
+
+transforms:
+  # Optional: Add a label to identify where these metrics came from
+  add_metadata:
+    type: remap
+    inputs: ["apache_source"]
+    source: |
+      .tags.environment = "${NODE_ENV:-production}"
+      .tags.source = "apache-server"
+
+sinks:
+  stdout_output:
+    type: console
+    inputs: ["add_metadata"]
+    encoding:
+      codec: json
